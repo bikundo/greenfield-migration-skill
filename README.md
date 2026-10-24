@@ -48,6 +48,7 @@ Describe the rewrite in your own words. The skill triggers on phrases like "rewr
 - Point it at the old code if you have it. The old code is treated as the spec, but not as the ceiling: the skill looks for bugs, security and performance gaps and missing behaviour while it reads, and asks you which improvements ship with the migration.
 - Answer its questions on money handling, data ownership and the order of work. It asks one at a time and attaches a recommendation.
 - Ask for a single phase if that is all you need ("just inventory the old app").
+- Expect it to hold the new code to a standard: doc blocks instead of inline comments, no stubs or skipped tests, designs that still work at ten times the load, and documentation read before behaviour is assumed. It writes those rules into your repository's contributor guide so they outlive the migration.
 
 ## Layout
 

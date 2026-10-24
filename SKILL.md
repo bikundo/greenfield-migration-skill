@@ -21,6 +21,24 @@ Work through the phases in order. Each one produces a concrete file. Skip a phas
 - **Ask when it matters, decide when it doesn't.** Anything that changes money handling, data ownership, security or the order of work is the user's call; ask one question at a time with a recommendation attached. Routine choices with a conventional answer don't need a question.
 - **Scale to the system.** A small internal tool may need half a page per phase. A payments or identity system needs all of it, with reconciliation and rollback rehearsed.
 
+## Standards for the new implementation
+
+A rewrite that ships quick-and-dirty code has only moved the problem. When you write or review code for the new system, hold it to these standards, in whatever language it is in. They apply from the first commit, because the "temporary" code written in week one is the foundation everything else sits on.
+
+- **No inline comments. Use doc blocks.** Never write a comment inside a function body or at the end of a line. Explain a module, type, function or exported value with a doc block above it in the language's own convention (Go doc comments, JSDoc/TSDoc, Python docstrings, Rustdoc, Javadoc, XML docs, and so on). If a piece of code needs an inline comment to be understood, restructure it until it does not: extract a named function, rename a variable, split a condition. Inline comments rot into lies the first time the code changes; a doc block on a stable interface stays true.
+- **No shortcuts.** No stubs that return fake data, no commented-out code, no skipped or disabled tests, no `TODO: fix later`, no hard-coded credentials or environment-specific values, no copying an old hack across because it was "already like that", no swallowed errors. If something is genuinely out of scope for now, it is an `add` or `improve` row in the inventory with an owner and a decision, not a shortcut in the code. Half-finished work is reported as half-finished.
+- **Simple, scalable, maintainable.** Prefer the design that still holds at ten times the users, tenants and data, not the one that is quickest to type today. When two options differ in effort but only one scales, take the one that scales and say so in the plan. Concretely:
+  - Bounded memory and bounded work: paginate, stream, batch; never load a whole table or queue into memory.
+  - Idempotent writes and jobs, so retries and duplicate deliveries are safe.
+  - Safe to run more than one copy: no in-process state that must be unique, locks and leases where coordination is needed.
+  - Observable: structured logs, metrics on the paths that matter, errors wrapped with context and never discarded.
+  - Explicit over implicit: context, tenant, actor and configuration are passed in, not read from globals.
+  - One place for each rule: money, time zones, identifiers and validation live in one module, not scattered.
+  - Tests for every behaviour in the parity contract, run in CI, plus reconciliation tests on money paths.
+- **Research, don't assume.** Before relying on how a protocol, library, API or database behaves, read its documentation and record the source in the plan. A rewrite inherits every wrong assumption as a bug.
+
+Record these standards in the target repository (a `CONTRIBUTING.md`, `AGENTS.md` or equivalent) in Phase 0, so every later contributor, human or agent, works to the same rules without having to be told. If the user already has such a file, follow it and add what is missing rather than replacing it.
+
 If you are working from the user's description alone, with no code to read, still produce the files. Mark every fact you could not verify as an assumption, and put the assumptions at the top of the brief so they are the first thing the team checks.
 
 ## Phase 0 — Frame it and challenge it
@@ -41,6 +59,8 @@ Get these facts first, from the user and the code. Ask only for what you can't f
 - **Estimate honestly:** rewrites routinely run 1.5–2x the first estimate. Put the buffer in the plan.
 
 Write `00-brief.md` (one or two pages): goal, why-rewrite and chosen strategy, non-negotiables, compliance, constraints, baseline and success criteria, top risks, decision owners, open assumptions.
+
+Also write, or extend, the target repository's contributor rules with the standards above (no inline comments, no shortcuts, scalable and maintainable code, research before assuming), so the standards travel with the code rather than with this plan.
 
 ## Phase 1 — Inventory what the old system actually does
 
