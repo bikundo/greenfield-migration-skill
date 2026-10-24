@@ -37,7 +37,7 @@ A rewrite that ships quick-and-dirty code has only moved the problem. When you w
   - Tests for every behaviour in the parity contract, run in CI, plus reconciliation tests on money paths.
 - **Research, don't assume.** Before relying on how a protocol, library, API or database behaves, read its documentation and record the source in the plan. A rewrite inherits every wrong assumption as a bug.
 
-Record these standards in the target repository (a `CONTRIBUTING.md`, `AGENTS.md` or equivalent) in Phase 0, so every later contributor, human or agent, works to the same rules without having to be told. If the user already has such a file, follow it and add what is missing rather than replacing it.
+Record these standards in an `AGENTS.md` at the root of the target repository in Phase 0, using [assets/agents-template.md](assets/agents-template.md). This file is a required output of every migration, not an optional nicety: the rewrite will outlive the people and agents who did it, and whoever maintains the code later needs one fixed place that states the ground rules, the conventions that follow from them, who decides what, and where the migration plan and inventory live. If the repository already has an `AGENTS.md`, `CLAUDE.md` or `CONTRIBUTING.md`, extend it with what is missing rather than replacing it, and keep the rules section durable: a later agent must not relax a rule because it is inconvenient for its task.
 
 If you are working from the user's description alone, with no code to read, still produce the files. Mark every fact you could not verify as an assumption, and put the assumptions at the top of the brief so they are the first thing the team checks.
 
@@ -60,7 +60,7 @@ Get these facts first, from the user and the code. Ask only for what you can't f
 
 Write `00-brief.md` (one or two pages): goal, why-rewrite and chosen strategy, non-negotiables, compliance, constraints, baseline and success criteria, top risks, decision owners, open assumptions.
 
-Also write, or extend, the target repository's contributor rules with the standards above (no inline comments, no shortcuts, scalable and maintainable code, research before assuming), so the standards travel with the code rather than with this plan.
+Also write `AGENTS.md` at the root of the target repository from [assets/agents-template.md](assets/agents-template.md): the standards above, the conventions for this stack, the decision owner, and links to the migration plan. Fill in the real conventions, owners and paths; a template left as a template helps nobody. Keep it updated as decisions are made in later phases.
 
 ## Phase 1 — Inventory what the old system actually does
 
@@ -182,7 +182,7 @@ The migration isn't finished while the old system can still surprise you. Don't 
 - Remove: credentials, partner allow-lists and callbacks pointing at old infrastructure, DNS, scheduled jobs, billing for old hosting, old app listings or their redirects.
 - Confirm traffic to old endpoints is zero (or only from versions you've agreed to stop serving) before shutting them down.
 - **Check costs:** confirm old licences, hosting and third-party plans are cancelled, and report actual savings if cost was a driver.
-- **Hand over knowledge:** architecture, runbooks, troubleshooting notes and dashboards for the new system, with support and operations trained on it.
+- **Hand over knowledge:** architecture, runbooks, troubleshooting notes and dashboards for the new system, with support and operations trained on it. Re-read `AGENTS.md` and bring it up to date: remove references to the old system once it is gone, confirm the conventions match what was actually built, and make sure it still points at the migration plan as the record of why things are the way they are.
 
 Write `07-decommission.md`.
 
@@ -201,7 +201,11 @@ docs/migration/<short-name>/
 ├── 05-parallel-run.md
 ├── 06-cutover-runbook.md
 └── 07-decommission.md
+
+AGENTS.md                      at the repository root, from assets/agents-template.md
 ```
+
+`AGENTS.md` is written in Phase 0 and maintained through every phase. It is how a later agent or engineer, arriving long after the migration, finds the ground rules and the reasoning behind them.
 
 Write for the whole team: a product lead should be able to read the brief and README; engineers need the inventory, parity and runbook detail.
 

@@ -21,7 +21,7 @@ A set of files under `docs/migration/<name>/` in your repository, one per phase,
 | 6 | `06-cutover-runbook.md` | Timed, owned steps, go/no-go, one-way doors, rollback |
 | 7 | `07-decommission.md` | Stabilisation, archive, shutdown, cost check, handover |
 
-Plus a `README.md` that tracks the current phase and the top open risks.
+Plus a `README.md` that tracks the current phase and the top open risks, and an `AGENTS.md` at the repository root that states the ground rules for the new codebase, so any agent or engineer who maintains it later starts from the same rules.
 
 ## Install
 
@@ -48,7 +48,7 @@ Describe the rewrite in your own words. The skill triggers on phrases like "rewr
 - Point it at the old code if you have it. The old code is treated as the spec, but not as the ceiling: the skill looks for bugs, security and performance gaps and missing behaviour while it reads, and asks you which improvements ship with the migration.
 - Answer its questions on money handling, data ownership and the order of work. It asks one at a time and attaches a recommendation.
 - Ask for a single phase if that is all you need ("just inventory the old app").
-- Expect it to hold the new code to a standard: doc blocks instead of inline comments, no stubs or skipped tests, designs that still work at ten times the load, and documentation read before behaviour is assumed. It writes those rules into your repository's contributor guide so they outlive the migration.
+- Expect it to hold the new code to a standard: doc blocks instead of inline comments, no stubs or skipped tests, designs that still work at ten times the load, and documentation read before behaviour is assumed. It writes those rules into an `AGENTS.md` at your repository root, from a bundled template, so they outlive the migration and bind every later contributor.
 
 ## Layout
 
@@ -61,6 +61,7 @@ references/
 assets/
   inventory-template.md               the behaviour inventory table
   runbook-template.md                 the cutover runbook
+  agents-template.md                  the AGENTS.md ground rules written into the target repository
 ```
 
 ## Contributing
