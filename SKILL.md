@@ -15,6 +15,7 @@ Work through the phases in order. Each one produces a concrete file. Skip a phas
 
 - **The old code is the spec.** Read it before trusting docs, tickets or memory. Where you have access to traffic, logs or usage data, read those too.
 - **Name real things.** Files, endpoints, tables, jobs, owners. A plan with placeholders is a plan nobody can check. When you can't find something, write `unknown` and list it as an open question rather than inventing a plausible name.
+- **Don't just port, improve.** A rewrite is the one moment the team can fix what the old system got wrong: bugs users work around, missing validation, security gaps, slow paths, duplicated logic, dead features, poor error handling. Copying the old design faithfully, flaws included, wastes that moment. Look for these gaps on purpose while you inventory, record each one, and decide with the user which improvements ship with the migration and which come after. An improvement is still a behaviour change, so it goes through the same parity discipline as everything else.
 - **Prefer the gradual path.** Default to a rollout that can be reversed per user, per cohort or per route. Big bang needs a stated reason.
 - **Measure, don't assert.** Parity, data correctness and readiness are shown by tests, diffs and reconciliation queries, not by "looks fine".
 - **Ask when it matters, decide when it doesn't.** Anything that changes money handling, data ownership, security or the order of work is the user's call; ask one question at a time with a recommendation attached. Routine choices with a conventional answer don't need a question.
@@ -35,6 +36,7 @@ Get these facts first, from the user and the code. Ask only for what you can't f
 - **Constraints:** deadline and its source, team size and skill gaps on the new stack, freeze windows (a peak sales period, month-end close, a regulatory reporting date), who signs off on go/no-go.
 - **Shape of the delivery:** strangler fig, phased by cohort/tenant/region/app version, or big bang. Default to gradual.
 - **Baseline and success criteria:** measure today's production numbers (latency, error rate, crash-free rate, conversion, payment success, support volume) *before* building, and state the targets relative to them. These numbers become the rollout gates and the go/no-go criteria later, so get them early.
+- **What should get better:** the specific problems the rewrite is meant to fix (performance, reliability, security, maintainability, a feature the old architecture couldn't hold). Write them as measurable outcomes. They justify the rewrite and they stop "improve it" from meaning "change everything".
 - **Top risks:** start the risk register now (likelihood, impact, mitigation, contingency, owner).
 - **Estimate honestly:** rewrites routinely run 1.5–2x the first estimate. Put the buffer in the plan.
 
@@ -42,7 +44,7 @@ Write `00-brief.md` (one or two pages): goal, why-rewrite and chosen strategy, n
 
 ## Phase 1 — Inventory what the old system actually does
 
-The old code is the spec, including the bugs users now depend on. Docs and memory are incomplete; read the code and, where you can, the traffic.
+The old code is the spec, including the bugs users now depend on. It is the starting point, not the ceiling. Docs and memory are incomplete; read the code and, where you can, the traffic.
 
 Sweep every surface. For a large codebase, split the sweep by surface and run the parts in parallel if your environment supports subagents; otherwise work through the table top to bottom.
 
@@ -58,16 +60,36 @@ Sweep every surface. For a large codebase, split the sweep by surface and run th
 
 Code isn't the only source. Ask the people who run and support the old system (support agents, operations, the engineer who wrote the billing job) what breaks and what users complain about. Do it early, before they move on; their knowledge is often in no file. Check usage data too: features nobody uses are candidates to drop instead of rebuild.
 
-For each behaviour record **what** it does, **where** (file and line, or endpoint), **who depends on it**, and a **disposition**: `keep` (must match), `change` (deliberately different; say how), or `drop` (say who agreed). Anything not yet classified is a risk, not a default `drop`.
+While you sweep, look for gaps as deliberately as you look for behaviour. For each surface ask: what is broken, fragile, slow, insecure or missing here, and what do users or support work around? Typical finds:
+
+- Bugs the old code has that users compensate for, and whether to fix or preserve them.
+- Validation, authorisation or error handling that is missing or inconsistent across endpoints.
+- Security weaknesses: weak hashing, secrets in code or config, unbounded queries, missing rate limits, injection risks.
+- Performance problems with a known cause (N+1 queries, no indexes, synchronous work that should be queued).
+- Duplicated or contradictory logic, where two code paths compute the same thing differently.
+- Dead code and unused features (confirm with usage data before calling them dead).
+- Operational gaps: no idempotency on retried jobs, no observability, no admin tooling for common support tasks.
+- Product gaps: things users ask for that the old architecture could not support.
+
+For each behaviour record **what** it does, **where** (file and line, or endpoint), **who depends on it**, and a **disposition**:
+
+- `keep`: must match the old system exactly.
+- `change`: deliberately different in what it does; say how and who agreed.
+- `improve`: same purpose, better implementation (fixed bug, hardened, faster, simpler); say what improves and how you will show it.
+- `add`: new behaviour the old system lacked; say who asked for it.
+- `drop`: removed; say who agreed.
+
+Anything not yet classified is a risk, not a default `drop`. Improvements and additions are where scope creep hides, so each `improve` and `add` row also says whether it ships with the migration or after it, and the user makes that call for anything that touches money, identity or data.
 
 Write `01-inventory.md` using [assets/inventory-template.md](assets/inventory-template.md). Expect this to be the longest file; that is fine.
 
 ## Phase 2 — Parity contract
 
-Turn every `keep` and `change` row into something checkable. "Works the same" is not checkable.
+Turn every `keep`, `change`, `improve` and `add` row into something checkable. "Works the same" is not checkable, and neither is "better".
 
 - Pick the verification per row: contract test against both systems, golden-file or snapshot comparison, recorded-traffic replay, screenshot diff, scripted manual check, or reconciliation query.
 - Prefer tests that run against **both** old and new, so a disagreement shows up as a diff instead of an opinion.
+- `improve` and `add` rows are verified against the intended behaviour, not the old system, and against the measurable outcome from Phase 0 where there is one (a latency target, a closed security finding, a bug that no longer reproduces). Where an improvement changes an output the old system produced, the diff against old is expected; say so in the row, so a triaged diff in Phase 5 is not mistaken for a regression.
 - Mark which rows **block cutover** and which can follow after. Non-negotiables from Phase 0 always block.
 - Note anything that can only be verified in production (real payment callbacks, real notification delivery). Those go into the cutover runbook as smoke checks.
 - Beyond functional parity, plan the test types that catch rewrite-specific failures: **load** (about 2x expected peak, including known seasonal or campaign spikes), **soak** (sustained load for hours to surface leaks and connection exhaustion), **compatibility** (old client versions, partner APIs, the devices, browsers and OS versions users actually have), and **user acceptance** with real users or staff on real tasks.
@@ -123,7 +145,7 @@ Read [assets/runbook-template.md](assets/runbook-template.md). The runbook is a 
 - **Rollback, per step:** how to undo it and how long that takes. Identify the **one-way doors**, the things that can't be undone (a store release users have installed, emails or SMS sent, money settled, data only written to the new system, DNS TTLs). For each, either make it reversible (reverse sync, keep the old system writable, keep the old binary deployable) or move it as late as possible and say so loudly.
 - **Readiness checklist** by area: infrastructure, application, data, testing, operations (dashboards, alerts, on-call), communications, rollback. Every item has an owner and is ticked before the window opens.
 - **Rollback triggers**, decided in advance so nobody argues at 2am: critical flow broken, data corruption detected, metrics past threshold, security issue, or the window about to be exceeded. Name the one person who calls it.
-- Communications: who tells users, support and partners, before, during and after. Support needs the "what changed" list from Phase 1's `change` rows and should be briefed before launch.
+- Communications: who tells users, support and partners, before, during and after. Support needs the "what changed" list from Phase 1's `change`, `improve` and `add` rows and should be briefed before launch.
 - Schedule the window at the lowest-risk time for *this* business (not a sales peak, a month-end close or a live campaign), with the team on hand.
 - Rehearse the full runbook, including rollback, on staging with production-shaped data. Record actual timings.
 - If you roll back, run a short review within a day: root cause, plan changes, new date. A rollback that is learnt from isn't a failure of the migration.
@@ -134,7 +156,7 @@ Write `06-cutover-runbook.md`.
 
 The migration isn't finished while the old system can still surprise you. Don't declare victory early; stabilisation takes weeks.
 
-- **Stabilise:** watch closely for the first 24–72 hours (extra support on duty, rollback still available), review metrics daily for the first week, then weekly for the first month. Compare against the Phase 0 success criteria and say plainly which were met.
+- **Stabilise:** watch closely for the first 24–72 hours (extra support on duty, rollback still available), review metrics daily for the first week, then weekly for the first month. Compare against the Phase 0 success criteria and the "what should get better" outcomes, and say plainly which were met.
 - Keep the old system read-only for a defined period (typically 30–90 days); know what would make you need it.
 - Archive data you're legally or operationally required to keep, with a documented way to query it.
 - Remove: credentials, partner allow-lists and callbacks pointing at old infrastructure, DNS, scheduled jobs, billing for old hosting, old app listings or their redirects.

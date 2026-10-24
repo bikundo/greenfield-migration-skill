@@ -1,18 +1,20 @@
 # Behaviour inventory — <old system> → <new system>
 
-Disposition: `keep` = must match · `change` = deliberately different (describe) · `drop` = removed (name who agreed) · `?` = not yet decided (treat as a risk)
+Disposition: `keep` = must match · `change` = deliberately different (describe) · `improve` = same purpose, better implementation (describe) · `add` = new behaviour (name who asked) · `drop` = removed (name who agreed) · `?` = not yet decided (treat as a risk)
+
+For `improve` and `add`, the Notes column says whether it ships with the migration or after it.
 
 ## Summary
 
-| Surface | Items | keep | change | drop | ? |
-|---|---|---|---|---|---|
-| User-facing | | | | | |
-| API / contracts | | | | | |
-| Background | | | | | |
-| Data | | | | | |
-| Identity | | | | | |
-| Integrations | | | | | |
-| Operational | | | | | |
+| Surface | Items | keep | change | improve | add | drop | ? |
+|---|---|---|---|---|---|---|---|
+| User-facing | | | | | | | |
+| API / contracts | | | | | | | |
+| Background | | | | | | | |
+| Data | | | | | | | |
+| Identity | | | | | | | |
+| Integrations | | | | | | | |
+| Operational | | | | | | | |
 
 ## User-facing
 
@@ -59,6 +61,14 @@ Disposition: `keep` = must match · `change` = deliberately different (describe)
 ## Surprises found
 
 Behaviour that wasn't documented or that users rely on despite looking like a bug. Each one needs an explicit disposition above.
+
+## Gaps and improvements
+
+Problems found in the old system while sweeping, and new behaviour the rewrite should add. Each links to the row above it affects (or is a new row with disposition `add`).
+
+| # | Gap | Where | Evidence (bug report, metric, code) | Proposed improvement | Ships with migration? | Decided by |
+|---|---|---|---|---|---|---|
+| G1 | | | | | | |
 
 ## Open questions
 

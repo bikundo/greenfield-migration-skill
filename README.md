@@ -13,7 +13,7 @@ A set of files under `docs/migration/<name>/` in your repository, one per phase,
 | Phase | File | What it answers |
 |---|---|---|
 | 0 | `00-brief.md` | Why rewrite, what can't break, strategy, baseline, success criteria, top risks |
-| 1 | `01-inventory.md` | Everything the old system actually does, with a keep / change / drop disposition per behaviour |
+| 1 | `01-inventory.md` | Everything the old system actually does, with a keep / change / improve / add / drop disposition per behaviour, plus the gaps found along the way |
 | 2 | `02-parity.md` | How each kept behaviour is verified, and which rows block cutover |
 | 3 | `03-data.md` | Entity mapping, sync strategy, reconciliation queries, rehearsal results |
 | 4 | `04-identity.md` | Credentials, sessions, old clients, third-party identities |
@@ -45,7 +45,7 @@ git clone https://github.com/<you>/greenfield-migration-skill .claude/skills/gre
 
 Describe the rewrite in your own words. The skill triggers on phrases like "rewrite", "v2", "replatform", "port to", "move off the legacy system", "how do we migrate users". Then:
 
-- Point it at the old code if you have it. The old code is treated as the spec.
+- Point it at the old code if you have it. The old code is treated as the spec, but not as the ceiling: the skill looks for bugs, security and performance gaps and missing behaviour while it reads, and asks you which improvements ship with the migration.
 - Answer its questions on money handling, data ownership and the order of work. It asks one at a time and attaches a recommendation.
 - Ask for a single phase if that is all you need ("just inventory the old app").
 
