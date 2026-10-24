@@ -28,13 +28,13 @@ Plus a `README.md` that tracks the current phase and the top open risks, and an 
 **Claude Code** (personal, available in every project):
 
 ```sh
-git clone https://github.com/<you>/greenfield-migration-skill ~/.claude/skills/greenfield-migration
+git clone https://github.com/bikundo/greenfield-migration-skill ~/.claude/skills/greenfield-migration
 ```
 
 **Claude Code** (shared with a team, checked into one repository):
 
 ```sh
-git clone https://github.com/<you>/greenfield-migration-skill .claude/skills/greenfield-migration
+git clone https://github.com/bikundo/greenfield-migration-skill .claude/skills/greenfield-migration
 ```
 
 **Claude.ai:** zip the repository and upload it as a skill in your settings, or install the `.skill` file from the latest release.
